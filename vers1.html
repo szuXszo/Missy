@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<head></head>
+<style>
+text {
+	font-family: 'Times New Roman', 'Times', serif;
+	font-size: 20px;
+	font-weight: bold;
+	fill: black;
+}
+</style>
+<body>
+<div id="container"></div>
+</body>
+<script type="module">
+
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+// Declare the chart dimensions and margins.
+const width = 640;
+const height = 400;
+const marginTop = 20;
+const marginRight = 20;
+const marginBottom = 30;
+const marginLeft = 40;
+
+// Create the SVG container.
+const svg = d3.select("#container")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height);
+
+svg.append("text")
+  .attr("x", 100)
+  .attr("y", 50)
+  .text("Vers");
+
+
+function getCoordinatesOfRotated(element) {
+    const node = element.node();
+    const bbox = node.getBBox();
+
+    // bottom-right corner in local (pre-rotation) coordinates
+    const point = new DOMPoint(bbox.x + bbox.width, bbox.y + bbox.height);
+
+    // apply the element's transform to get SVG coordinates
+    const matrix = node.transform.baseVal.consolidate().matrix;
+    const rotated = point.matrixTransform(matrix);
+
+    return [rotated.x, rotated.y, bbox.height, bbox.width]
+
+}
+
+
+function writeText(string, startX, startY, svg) {
+    
+    const limit = 100;
+    
+    const chars = string.split("")
+
+    let x = startX;
+    let y = startY;
+    let appendedChar;
+    let appendedCharWidth;
+    let rotation = 0;
+    let rotationChange = 10;
+
+    const probe = svg.append("text").text("\u00A0");
+    const spaceWidth = probe.node().getComputedTextLength();
+    probe.remove();
+    
+    for (let i=0; i<chars.length; i++) {
+        
+        if (chars[i] == "\n") {
+            y += 25
+            x = startX
+            continue
+        }
+
+        if (chars[i] == " ") {
+            x += spaceWidth;
+            continue   
+        }
+
+        if (i > limit) {
+            // rotation = rotation + rotationChange
+            rotation = Math.random() * 360
+            appendedChar = svg.append("text")
+                            .text(chars[i])
+                            .attr("x", x).attr("y", y)
+                            .attr("transform", 
+                            "rotate("+rotation+"," + x + "," + y + ")")
+
+
+            let rotatedCoordinates = getCoordinatesOfRotated(appendedChar)
+            x = rotatedCoordinates[0] + appendedCharWidth
+            y = rotatedCoordinates[1]
+
+            console.log(rotatedCoordinates)
+        } else {
+            appendedChar = svg.append("text").text(chars[i]).attr("x", x).attr("y", y)
+            appendedCharWidth = appendedChar.node().getComputedTextLength();
+            x+=appendedCharWidth    
+        }
+        
+    }
+}
+
+
+const mikor = ["reggel", "este", "délután", "hajnalban", "éjjel", "keltemben", "álmomban", "télen"];
+const milyen = ["kedves", "szép", "kfinomult", "hatásos"]
+const hogy_ = ["értelme is legyen.", "másoknak is tetszen."]
+const poem = `Minden ` + mikor[Math.floor(Math.random() * 8)] + ` arra gondolok, verset írni akarok. 
+Hosszú ` + milyen[Math.floor(Math.random() * 4)] + ` és teljeset. 
+Valahogy úgy, hogy ` + hogy_[Math.floor(Math.random() * 2)]
+
+writeText(poem, 100, 100, svg)
+
+svg.append('circle')
+  .attr('cx', 400)
+  .attr('cy', 300)
+  .attr('r', 1)
+  .attr('stroke', 'black')
+  .attr('fill', '#69a3b2');
+  
+const signatureRotation = Math.random() * 100 - 1;
+svg.append("text")
+    .text("M")
+    .attr("x", 400)
+    .attr("y", 300)
+    .attr("text-anchor", "end")
+    .attr("transform", "rotate("+signatureRotation+", 400, 300)");
+
+</script>
