@@ -165,8 +165,9 @@ function mainBirdFunction(x, y) {
 
   generateNBirds(1, birdBox, svg, margin, height)
 
-  const legyen = [" csuda", " manó", " fene", " bré", "z Isten", " rosseb", " franc", " lópikula"]
-  svg.append("text").text(`te Madár, itt ülsz a zsinegen. Veled meg mi a` + legyen[Math.floor(Math.random() * 8)] + ` legyen?`).attr("x", 130).attr("y", 99)
+  const legyen = ["a csuda", "a manó", "a fene", "a bré", "az Isten", "a rosseb", "a franc", "a lópikula", "", "", ""]
+  const milyen = ["ronda", "szép"]
+  svg.append("text").text(`te ` + milyen[Math.floor(Math.random() * 2)] + ` Madár, itt ülsz a zsinegen. Veled meg mi ` + legyen[Math.floor(Math.random() * 11)] + ` legyen?`).attr("x", 130).attr("y", 99)
 
 }
 
