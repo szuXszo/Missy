@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<head></head>
+<style>
+</style>
+<body>
+<div id="container"></div>
+</body>
+<script type="module">
+
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+// Declare the chart dimensions and margins.
+const svgWidth = 1000;
+const svgHeight = 1000;
+
+let ELBASZAS_MERO = 0.001;
+
+function elbaszo(x) {
+    
+    if (Math.random() > 0.5) {  // plus
+        return x * (1 + Math.random() * ELBASZAS_MERO)
+    } else { // minus
+        return x * (1 - Math.random() * ELBASZAS_MERO)
+    } 
+    
+}
+// Create the SVG container.
+let svg = d3.select("#container")
+  .append("svg")
+  .attr("viewBox", [0, 0, svgWidth, svgHeight]);
+//   .attr("width", svgWidth)
+//   .attr("height", svgHeight);
+
+
+// CORE SHAPE FUNCTIONS
+
+function getRightX(elem) {
+    // attach temporarily so the browser computes geometry
+    svg.node().appendChild(elem.node());
+    const bbox = elem.node().getBBox();
+    elem.node().remove();
+    let corner = new DOMPoint(bbox.x + bbox.width, bbox.y);
+    let rightX = corner.matrixTransform(elem.node().getCTM()).x;
+    return rightX
+}
+
+function appendLine(elem, x1, y1, x2, y2) {
+    elem.append("line")
+        .attr("x1", elbaszo(x1))
+        .attr("y1", elbaszo(y1))
+        .attr("x2", elbaszo(x2))
+        .attr("y2", elbaszo(y2))
+        .attr("stroke", "black")
+}
+
+function appendCurve(elem, p1, p2, c1, c2) {
+
+    elem.append("path")
+        .attr("d", `M ${elbaszo(p1.x)} ${elbaszo(p1.y)} C ${elbaszo(c1.x)} ${elbaszo(c1.y)}, ${elbaszo(c2.x)} ${elbaszo(c2.y)}, ${elbaszo(p2.x)} ${elbaszo(p2.y)}`)
+        .attr("fill", "none")
+        .attr("stroke", "black");
+}
+
+function appendArc(elem, x, y, r, start, end) {
+    elem.append("path")
+        .attr("transform", "translate("+elbaszo(x)+","+elbaszo(y)+")")
+        .attr("d", d3.arc()({
+            innerRadius: elbaszo(r/2-1),
+            outerRadius: elbaszo(r/2),
+            startAngle: elbaszo(start),
+            endAngle: elbaszo(end)
+        }));;
+}
+
+function appendCircle(elem, x, y, r) {
+    elem.append('circle')
+    .attr('cx', elbaszo(x))
+    .attr('cy', elbaszo(y))
+    .attr('r', elbaszo(r))
+    .attr('stroke', 'black')
+    .attr('fill', '#black');
+  
+}
+
+function a(x, y, size) {
+
+    const letterA = d3.create("svg:g")
+        .attr("class", "letter-a");
+
+    appendLine(letterA, x, y, x+size/2, y-size)
+    appendLine(letterA, x+size/2, y-size, x+size, y)
+    appendLine(letterA, x+size/4, y-size/2, x+size/4*3, y-size/2)
+
+    return letterA
+}
+
+function aa(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterAA = d3.create("svg:g")
+        .attr("class", "letter-a");
+
+    appendLine(letterAA, x, y, x+width/2, y-height)
+    appendLine(letterAA, x+width/2, y-height, x+width, y)
+    appendLine(letterAA, x+width/4, y-height/2, x+width/4*3, y-height/2)
+
+    appendLine(letterAA, x+width*0.75, y-height*0.8, x+width*0.75, y-height*1.1)
+    
+    return letterAA
+}
+
+function b(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterB = d3.create("svg:g")
+        .attr("class", "letter-b")
+
+    appendLine(letterB, x, y, x, y-height)
+
+    appendCurve(
+        letterB,
+        {x: x, y: y-height},
+        {x: x, y: y-height/2},
+        {x: x+width/2, y: y-height},
+        {x: x+width/2, y: y-height/2}
+    )
+
+    appendCurve(
+        letterB,
+        {x: x, y: y-height/2},
+        {x: x, y: y},
+        {x: x+width/1.5, y: y-height/2},
+        {x: x+width/1.5, y: y}
+    )
+    
+    return letterB
+}
+
+
+function c(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterC = d3.create("svg:g")
+        .attr("class", "letter-c")
+
+    appendArc(letterC, x+width/2, y-height/2, height, -4, 0.8)
+
+    // attach temporarily so the browser computes geometry
+    // svg.node().appendChild(letterC.node());
+    // const bbox = letterC.node().getBBox();
+    // letterC.node().remove();
+    // let corner = new DOMPoint(bbox.x + bbox.width, bbox.y);
+    // let rightX = corner.matrixTransform(letterC.node().getCTM()).x;
+    // const rightX = getRightX(letterC)
+
+    return letterC
+
+}
+
+function cs(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterCs = d3.create("svg:g")
+        .attr("class", "letter-c")
+
+    letterCs.append("path")
+    .attr("transform", "translate("+(x+width/2)+","+(y-height/2)+")")
+    .attr("d", d3.arc()({
+      innerRadius: height/2-1,
+      outerRadius: height/2,
+      startAngle: -4,
+      endAngle: 0.8
+    }));;
+
+    // letterCs.append("path")
+    //     .attr("transform", "translate("+(x+width*1.25)+","+(y-height/2)+")")
+    //     .attr("d", d3.arc()({
+    //         innerRadius: height/6-1,
+    //         outerRadius: height/6,
+    //         startAngle: Math.PI/4,
+    //         endAngle: -Math.PI
+    //     }))
+
+    // letterCs.append("path")
+    //     .attr("transform", "translate("+(x+width*1.25)+","+(y-height/6)+")")
+    //     .attr("d", d3.arc()({
+    //         innerRadius: height/6,
+    //         outerRadius: height/6+1,
+    //         startAngle: Math.PI*1.5,
+    //         endAngle: -Math.PI*0.025
+    //     }))
+
+
+    const r = height / 6;
+    const cx = x + width * 1.15;
+    const topY = y - height / 2;   // top circle center
+    const botY = y - height / 6;   // bottom circle center
+
+    letterCs.append("path")
+        .attr("d", `M ${cx + r * Math.SQRT1_2} ${topY - r * Math.SQRT1_2}
+                    A ${r} ${r} 0 1 0 ${cx} ${topY + r}
+                    A ${r} ${r} 0 1 1 ${cx - r} ${botY}`)
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("stroke-linecap", "round");
+        
+    return letterCs
+
+}
+
+function d(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterD = d3.create("svg:g")
+        .attr("class", "letter-d")
+
+    appendLine(letterD, x, y, x, y-height)
+    appendCurve(letterD,
+        {x: x, y: y-height},
+        {x: x, y: y},
+        {x: x+width, y: y-height},
+        {x: x+width, y: y}
+    )
+
+    return letterD
+}
+
+function dz(x, y, size) {
+
+    const letterDz = d3.create("svg:g")
+        .attr("class", "letter-dz")
+
+    appendLine(letterDz, x, y, x, y-size)
+    appendCurve(letterDz,
+        {x: x, y: y-size},
+        {x: x, y: y},
+        {x: x+size, y: y-size},
+        {x: x+size, y: y}
+    )
+
+    appendLine(letterDz, x+size*0.9, y, x+size*1.4, y)
+    appendLine(letterDz, x+size*0.9, y-size/2, x+size*1.4, y-size/2)
+    appendLine(letterDz, x+size*0.9, y, x+size*1.4, y-size/2)
+
+    return letterDz
+}
+
+function dzs(x, y, size) {
+
+    const letterDzs = d3.create("svg:g")
+        .attr("class", "letter-dzs")
+
+    appendLine(letterDzs, x, y, x, y-size)
+    appendCurve(letterDzs,
+        {x: x, y: y-size},
+        {x: x, y: y},
+        {x: x+size, y: y-size},
+        {x: x+size, y: y}
+    )
+
+    appendLine(letterDzs, x+size*0.9, y, x+size*1.4, y)
+    appendLine(letterDzs, x+size*0.9, y-size/2, x+size*1.4, y-size/2)
+    appendLine(letterDzs, x+size*0.9, y, x+size*1.4, y-size/2)
+
+    const r = elbaszo(size / 7);
+    const cx = elbaszo(x + size * 1.7);
+    const topY = elbaszo(y - size / 2 + size/10);   // top
+    const botY = elbaszo(y - size / 6 + size/10);   // bottom
+
+    letterDzs.append("path")
+        .attr("d", `M ${cx + r * Math.SQRT1_2} ${topY - r * Math.SQRT1_2}
+                    A ${r} ${r} 0 1 0 ${cx} ${topY + r}
+                    A ${r} ${r} 0 1 1 ${cx - r} ${botY}`)
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("stroke-linecap", "round");
+
+    return letterDzs
+}
+
+function e(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterE = d3.create("svg:g")
+        .attr("class", "letter-e")
+
+    appendLine(letterE, x, y, x+width/1.25, y)
+    appendLine(letterE, x, y-height/2, x+width/1.5, y-height/2)
+    appendLine(letterE, x, y-height, x+width/1.25, y-height)
+    appendLine(letterE, x, y, x, y-height)
+    return letterE
+}
+
+function e1(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterEe = d3.create("svg:g")
+        .attr("class", "letter-ee")
+
+    appendLine(letterEe, x, y, x+width/1.25, y)
+    appendLine(letterEe, x, y-height/2, x+width/1.5, y-height/2)
+    appendLine(letterEe, x, y-height, x+width/1.25, y-height)
+    appendLine(letterEe, x, y, x, y-height)
+
+    appendLine(letterEe, x+width/3, y-height*1.1, x+width/2, y-height*1.3)
+    return letterEe
+}
+
+
+function f(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterF = d3.create("svg:g")
+        .attr("class", "letter-f")
+
+    appendLine(letterF, x, y-height/2, x+width/1.5, y-height/2)
+    appendLine(letterF, x, y-height, x+width/1.25, y-height)
+    appendLine(letterF, x, y, x, y-height)
+    return letterF
+}
+
+function g(x, y, size) {
+
+    const width = size
+    const height = size
+
+    const letterG = d3.create("svg:g")
+        .attr("class", "letter-g")
+
+    letterG.append("path")
+    .attr("transform", "translate("+(x+width/2)+","+(y-height/2)+")")
+    .attr("d", d3.arc()({
+      innerRadius: height/2-1,
+      outerRadius: height/2,
+      startAngle: Math.PI-Math.PI/1.3,
+      endAngle: -Math.PI*1.5
+    }));;
+    appendLine(letterG, x+width/2, y-height/2, x+width, y-height/2)
+
+    return letterG
+}
+
+function gy(x, y, size) {
+
+    const letterGy = d3.create("svg:g")
+        .attr("class", "letter-g")
+
+    letterGy.append("path")
+    .attr("transform", "translate("+(x+size/2)+","+(y-size/2)+")")
+    .attr("d", d3.arc()({
+      innerRadius: size/2-1,
+      outerRadius: size/2,
+      startAngle: Math.PI-Math.PI/1.3,
+      endAngle: -Math.PI*1.5
+    }));;
+    appendLine(letterGy, x+size/2, y-size/2, x+size, y-size/2)
+
+    appendLine(letterGy, x+size*1.5, y-size*0.5, x+size*1.1, y+size/2)
+    appendLine(letterGy, x+size*1.1, y-size*0.5, x+size*1.3, y)
+    return letterGy
+}
+
+function h(x, y, size) {
+
+    const letterH = d3.create("svg:g")
+        .attr("class", "letter-h")
+
+    appendLine(letterH, x, y-size/2, x+size/1.5, y-size/2)
+    appendLine(letterH, x, y, x, y-size)
+    appendLine(letterH, x+size/1.5, y, x+size/1.5, y-size)
+
+    return letterH
+}
+
+function i(x, y, size) {
+    const letterI = d3.create("svg:g")
+        .attr("class", "letter-i")
+    appendLine(letterI, x, y, x, y-size*0.8)
+    appendCircle(letterI, x, y-size, size*0.01)
+    return letterI
+}
+
+function i1(x, y, size) {
+    const letterI1 = d3.create("svg:g")
+        .attr("class", "letter-i1")
+    appendLine(letterI1, x, y, x, y-size*0.8)
+    appendLine(letterI1, x, y-size*0.9, x+size/20, y-size*1.1)
+    return letterI1
+}
+
+function j(x, y, size) {
+    
+    const letterJ = d3.create("svg:g")
+        .attr("class", "letter-j")
+
+    const rightX = x+size*0.2
+    appendLine(letterJ, rightX, y-size*0.8, rightX, y)
+    appendCircle(letterJ, rightX, y-size, size*0.01) 
+    appendCurve(letterJ,
+        {x: rightX, y: y},
+        {x: x, y: y+size*0.1},
+        {x: rightX, y: y+size*0.5},
+        {x: x, y: y+size*0.5},
+    )
+
+    return letterJ
+    
+}
+
+function k(x, y, size) {
+    const letterK = d3.create("svg:g")
+        .attr("class", "letter-k")
+
+    const kXv = 1.5
+    const kYv = 1
+    const unit = size/10
+    appendLine(letterK, x, y, x, y-size) // first vertical
+    appendLine(letterK, x+(unit*kYv*1), y-size/2, x+size*0.75, y) // lower diagonal
+    appendLine(letterK, x, y-size*0.4, x+unit*kXv*4, y-(size))
+    return letterK
+}
+
+
+function l(x, y, size) {
+    const letterL = d3.create("svg:g")
+        .attr("class", "letter-l")
+
+    appendLine(letterL, x, y, x, y-size)
+    appendLine(letterL, x, y, x+size/1.25, y)
+    return letterL
+}
+
+function ly(x, y, size) {
+    const letterLy = d3.create("svg:g")
+        .attr("class", "letter-ly")
+
+    appendLine(letterLy, x, y, x, y-size)
+    appendLine(letterLy, x, y, x+size/1.25, y)
+    
+    appendLine(letterLy, x+size*1.2, y-size*0.5, x+size*0.8, y+size/2)
+    appendLine(letterLy, x+size*0.8, y-size*0.5, x+size*1, y)
+
+    return letterLy
+}
+
+function m(x, y, size) {
+    const letterM = d3.create("svg:g")
+        .attr("class", "letter-m")
+
+    appendLine(letterM, x, y, x, y-size)
+    appendLine(letterM, x+size, y, x+size, y-size)
+
+    appendLine(letterM, x, y-size, x+size/2, y-size/2)
+    appendLine(letterM, x+size, y-size, x+size/2, y-size/2)
+
+    return letterM
+}
+
+function n(x, y, size) {
+    const letterN = d3.create("svg:g")
+        .attr("class", "letter-n")
+
+    appendLine(letterN, x, y, x, y-size)
+    appendLine(letterN, x+size*0.8, y, x+size*0.8, y-size)
+
+    appendLine(letterN, x, y-size, x+size*0.8, y)
+
+    return letterN
+}
+
+function ny(x, y, size) {
+    const letterNy = d3.create("svg:g")
+        .attr("class", "letter-ny")
+
+    appendLine(letterNy, x, y, x, y-size)
+    appendLine(letterNy, x+size*0.8, y, x+size*0.8, y-size)
+    appendLine(letterNy, x, y-size, x+size*0.8, y)
+
+    appendLine(letterNy, x+size*1.3, y-size*0.5, x+size*0.9, y+size/2)
+    appendLine(letterNy, x+size*0.9, y-size*0.5, x+size*1.1, y)
+
+    return letterNy
+}
+
+function o(x, y, size) {
+    const letterO = d3.create("svg:g")
+        .attr("class", "letter-o")
+
+    appendArc(letterO, x+size/2, y-size/2+size/10, size-size/10, Math.PI, -Math.PI)
+
+    return letterO
+}
+
+function o1(x, y, size) {
+    const letterO1 = d3.create("svg:g")
+        .attr("class", "letter-o1")
+
+    appendArc(letterO1, x+size/2, y-size/2+size/10, size-size/10, Math.PI, -Math.PI)
+    appendLine(letterO1, x+size*0.6, y-size-size*0.1, x+size/2, y-size*0.9)
+    return letterO1
+}
+
+function oo(x, y, size) {
+    const letterOo = d3.create("svg:g")
+        .attr("class", "letter-oo")
+
+    appendArc(letterOo, x+size/2, y-size/2+size/10, size-size/10, Math.PI, -Math.PI)
+    appendCircle(letterOo, x+size*0.4, y-size, size*0.01)
+    appendCircle(letterOo, x+size*0.6, y-size, size*0.01)
+
+    return letterOo
+}
+
+function o1o1(x, y, size) {
+    const letterO1o1 = d3.create("svg:g")
+        .attr("class", "letter-o1o1")
+
+    appendArc(letterO1o1, x+size/2, y-size/2+size/10, size-size/10, Math.PI, -Math.PI)
+    appendLine(letterO1o1, x+size*0.55, y-size-size*0.1, x+size*0.45, y-size*0.9)
+    appendLine(letterO1o1, x+size*0.65, y-size-size*0.1, x+size*0.55, y-size*0.9)
+    return letterO1o1
+}
+
+function p(x, y, size) {
+    const letterP = d3.create("svg:g")
+        .attr("class", "letter-p")
+
+    appendCurve(letterP, 
+        {x: x, y: y-size},
+        {x: x, y: y-size/2},
+        {x: x+size/2, y: y-size},
+        {x: x+size/2, y: y-size/2}
+    )
+
+    appendLine(letterP, x, y, x, y-size)
+    
+    return letterP
+}
+
+function q(x, y, size) {
+    const letterQ = d3.create("svg:g")
+            .attr("class", "letter-q")
+
+    appendArc(letterQ, x+size/2, y-size/2+size/10, size-size/10, Math.PI, -Math.PI)
+    appendLine(letterQ, x+size*0.7, y-size*0.2, x+size*0.9, y)
+    return letterQ
+
+}
+
+function r(x, y, size) {
+    const letterR = d3.create("svg:g")
+        .attr("class", "letter-r")
+
+    appendCurve(letterR, 
+        {x: x, y: y-size},
+        {x: x, y: y-size/2},
+        {x: x+size/2, y: y-size},
+        {x: x+size/2, y: y-size/2}
+    )
+
+    appendLine(letterR, x, y, x, y-size)
+    appendLine(letterR, x, y-size*0.5, x+size/2, y)
+    
+    return letterR
+}
+
+function s(x, y, size) {
+
+    const letterS = d3.create("svg:g")
+        .attr("class", "letter-s")
+
+    const r = elbaszo(size / 4);
+    const cx = elbaszo(x+size*0.25);
+    const topY = elbaszo(y - size + size*0.25);   // top 
+    const botY = elbaszo(y - size*0.5 + size*0.25);   // bottom
+
+    letterS.append("path")
+        .attr("d", `M ${cx + r * elbaszo(Math.SQRT1_2)} ${topY - r * elbaszo(Math.SQRT1_2)}
+                    A ${r} ${r} 0 1 0 ${cx} ${topY + r}
+                    A ${r} ${r} 0 1 1 ${cx - r} ${botY}`)
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("stroke-linecap", "round");
+        
+    return letterS
+
+}
+
+function sz(x, y, size) {
+
+    const letterSz = d3.create("svg:g")
+        .attr("class", "letter-sz")
+
+    const r = elbaszo(size / 4);
+    const cx = elbaszo(x+size*0.25);
+    const topY = elbaszo(y - size + size*0.25);   // top 
+    const botY = elbaszo(y - size*0.5 + size*0.25);   // bottom
+
+    letterSz.append("path")
+        .attr("d", `M ${cx + r * Math.SQRT1_2} ${topY - r * Math.SQRT1_2}
+                    A ${r} ${r} 0 1 0 ${cx} ${topY + r}
+                    A ${r} ${r} 0 1 1 ${cx - r} ${botY}`)
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("stroke-linecap", "round");
+
+    appendLine(letterSz, x+r*2+1, y, x+size, y)
+    appendLine(letterSz, x+r*2+1, y-size/2, x+size, y-size/2)
+    appendLine(letterSz, x+r*2+1, y, x+size, y-size/2)
+        
+    return letterSz
+
+}
+
+function t(x, y, size) {
+
+    const letterT = d3.create("svg:g")
+        .attr("class", "letter-t")
+
+    appendLine(letterT, x, y-size, x+size, y-size)
+    appendLine(letterT, x+size/2, y, x+size/2, y-size)
+        
+    return letterT
+
+}
+
+function ty(x, y, size) {
+
+    const letterTy = d3.create("svg:g")
+        .attr("class", "letter-ty")
+
+    appendLine(letterTy, x, y-size, x+size, y-size)
+    appendLine(letterTy, x+size/2, y, x+size/2, y-size)
+        
+    appendLine(letterTy, x+size*1.1, y-size*0.5, x+size*0.7, y+size/2)
+    appendLine(letterTy, x+size*0.7, y-size*0.5, x+size*0.9, y)
+
+    return letterTy
+
+}
+
+function u(x, y, size) {
+    const letterU = d3.create("svg:g")
+        .attr("class", "letter-u")
+        
+    appendLine(letterU, x, y-size*0.25, x, y-size*0.9)
+    appendLine(letterU, x+size*0.5, y-size*0.25, x+size*0.5, y-size*0.9)
+        
+    appendArc(letterU, x+size*0.25, y-size*0.25, size/2+1, Math.PI*0.5, Math.PI*1.5)
+
+    return letterU
+}
+
+function u1(x, y, size) {
+    const letterU1 = d3.create("svg:g")
+        .attr("class", "letter-u1")
+        
+    appendLine(letterU1, x, y-size*0.25, x, y-size*0.9)
+    appendLine(letterU1, x+size*0.5, y-size*0.25, x+size*0.5, y-size*0.9)
+        
+    appendArc(letterU1, x+size*0.25, y-size*0.25, size/2+1, Math.PI*0.5, Math.PI*1.5)
+
+    appendLine(letterU1, x+size*0.25, y-size*0.9, x+size*0.3, y-size*1.1)
+
+    return letterU1
+}
+
+function uu(x, y, size) {
+    const letterUu = d3.create("svg:g")
+        .attr("class", "letter-uu")
+        
+    appendLine(letterUu, x, y-size*0.25, x, y-size*0.9)
+    appendLine(letterUu, x+size*0.5, y-size*0.25, x+size*0.5, y-size*0.9)
+        
+    appendArc(letterUu, x+size*0.25, y-size*0.25, size/2+1, Math.PI*0.5, Math.PI*1.5)
+
+    appendCircle(letterUu, x+size*0.15, y-size, size*0.01)
+    appendCircle(letterUu, x+size*0.3, y-size, size*0.01)
+
+    return letterUu
+}
+
+function u1u1(x, y, size) {
+    const letterU1 = d3.create("svg:g")
+        .attr("class", "letter-u1u1")
+        
+    appendLine(letterU1, x, y-size*0.25, x, y-size*0.9)
+    appendLine(letterU1, x+size*0.5, y-size*0.25, x+size*0.5, y-size*0.9)
+        
+    appendArc(letterU1, x+size*0.25, y-size*0.25, size/2+1, Math.PI*0.5, Math.PI*1.5)
+
+    appendLine(letterU1, x+size*0.25, y-size-size*0.1, x+size*0.15, y-size*0.9)
+    appendLine(letterU1, x+size*0.35, y-size-size*0.1, x+size*0.25, y-size*0.9)
+
+    return letterU1
+}
+
+function v(x, y, size) {
+    const letterV = d3.create("svg:g")
+        .attr("class", "letter-v")
+        
+    appendLine(letterV, x, y-size, x+size*0.25, y)
+    appendLine(letterV, x+size*0.25, y, x+size*0.5, y-size)
+
+    return letterV
+}
+
+function w(x, y, size) {
+    const letterW = d3.create("svg:g")
+        .attr("class", "letter-w")
+        
+    appendLine(letterW, x, y-size, x+size*0.25, y)
+    appendLine(letterW, x+size*0.25, y, x+size*0.4, y-size/2)
+    appendLine(letterW, x+size*0.4, y-size/2, x+size*0.55, y)
+    appendLine(letterW, x+size*0.55, y, x+size*0.7, y-size)
+
+    return letterW
+}
+
+function x(x, y, size) {
+    const letterX = d3.create("svg:g")
+        .attr("class", "letter-x")
+        
+    appendLine(letterX, x, y, x+size*0.8, y-size)
+    appendLine(letterX, x+size*0.8, y, x, y-size)
+        
+
+    return letterX
+}
+
+function y(x, y, size) {
+    const letterY = d3.create("svg:g")
+        .attr("class", "letter-y")
+        
+    appendLine(letterY, x, y-size, x+size*0.4, y-size/2)
+    appendLine(letterY, x+size*0.8, y-size, x+size*0.4, y-size/2)
+    appendLine(letterY, x+size*0.4, y-size/2, x+size*0.4, y)
+        
+    return letterY
+}
+
+function z(x, y, size) {
+    const letterZ = d3.create("svg:g")
+        .attr("class", "letter-z")
+        
+    appendLine(letterZ, x, y-size, x+size*0.8, y-size)
+    appendLine(letterZ, x+size*0.8, y-size, x, y)
+    appendLine(letterZ, x, y, x+size*0.8, y)
+        
+    return letterZ
+}
+
+function zs(x, y, size) {
+    const letterZs = d3.create("svg:g")
+        .attr("class", "letter-zs")
+        
+    appendLine(letterZs, x, y-size, x+size*0.8, y-size)
+    appendLine(letterZs, x+size*0.8, y-size, x, y)
+    appendLine(letterZs, x, y, x+size*0.8, y)
+        
+    const r = size / 6;
+    const cx = x + size;
+    const topY = y - size / 2;   // top
+    const botY = y - size / 6;   // bottom
+
+    letterZs.append("path")
+        .attr("d", `M ${cx + r * Math.SQRT1_2} ${topY - r * Math.SQRT1_2}
+                    A ${r} ${r} 0 1 0 ${cx} ${topY + r}
+                    A ${r} ${r} 0 1 1 ${cx - r} ${botY}`)
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+        .attr("stroke-linecap", "round");
+
+    return letterZs
+}
+
+const abc = {
+    "a": a,
+    "á": aa,
+    "b": b,
+    "c": c,
+    "cs": cs,
+    "d": d,
+    "dz": dz,
+    "dzs": dzs,
+    "e": e,
+    "é": e1,
+    "f": f,
+    "g": g,
+    "gy": gy,
+    "h": h,
+    "i": i,
+    "í": i1,
+    "j": j,
+    "k": k,
+    "l": l,
+    "ly": ly,
+    "m": m,
+    "n": n,
+    "ny": ny,
+    "o": o,
+    "ó": o1,
+    "ö": oo,
+    "ő": o1o1,
+    "p": p,
+    "r": r,
+    "s": s,
+    "sz": sz,
+    "t": t,
+    "ty": ty,
+    "u": u,
+    "ú": u1,
+    "ü": uu,
+    "ű": u1u1,
+    "v": v,
+    "w": w,
+    "z": z,
+    "zs": zs
+}
+
+
+function writeRow(row, letterSize, space, rowY) {
+    let newLetterX = 10;
+    let rowLetter;
+    let rowLetterElem;
+    let rowLetterFunc;
+    for (let i=0; i<=row.length-1; i++) {
+         
+        rowLetter = row[i]
+        if (rowLetter == ' ') {
+            newLetterX += space*3
+        } else {
+            rowLetterFunc = abc[rowLetter]
+
+            rowLetterElem = rowLetterFunc(newLetterX, rowY, letterSize)
+            let rowLetterX = getRightX(rowLetterElem)
+            svg.append(() => rowLetterElem.node())
+            newLetterX = rowLetterX + space    
+        }
+        
+    }
+}
+
+const letterSize = 50;
+const space = 10;
+
+
+const poem = `
+Ez az én versem
+Ezt a verset én írtam
+De nem minden részét
+Nem minden vonását
+Most már nem az én versem
+`
+
+let rounds = 1000;
+const randomTiers = [10, 10, 100, 100, 100, 1000, 1000]
+
+let elbaszasDeMennyivel = Math.random() * 0.001
+for (let round = 0; round < rounds; round++) {
+    
+    await new Promise(r => setTimeout(r, Math.random() * randomTiers[Math.floor(Math.random() * 6)]));
+
+    svg.selectAll("g").remove()
+    
+    // if (round < rounds/2) {
+    //     ELBASZAS_MERO += elbaszasDeMennyivel // 0.00002
+    // } else {
+    //     ELBASZAS_MERO -= elbaszasDeMennyivel //-0.00002
+    // }
+
+    const rowTexts = poem.toLowerCase().split('\n')
+    for (let i=0; i<rowTexts.length; i++) {
+        writeRow(rowTexts[i], elbaszo(30), elbaszo(10), elbaszo(i*50))
+    }
+    
+    if (round == 0) {
+        await new Promise(r => setTimeout(r, 10000));
+    } else {
+        ELBASZAS_MERO += elbaszasDeMennyivel
+    }
+
+}
+
+</script>
