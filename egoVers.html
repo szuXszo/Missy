@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<head></head>
+<style>
+text {
+	font-family: 'Times New Roman', 'Times', serif;
+	font-size: 18px;
+	fill: rgb(255, 255, 255);
+}
+</style>
+<body>
+<div id="container"></div>
+</body>
+<script type="module">
+
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+
+let circleIterations = 25;
+let firstDuration = 1000;
+
+const width = window.innerWidth // 800;
+const height = window.innerHeight //800;
+const padding = 20;
+const endCount = 18;
+
+// Create the SVG container.
+const svg = d3.select("#container")
+  .append("svg")
+  .attr("viewBox", [0, 0, width, height])
+
+
+const poem = [
+    'Minden vers kezdődik valahol', 
+    'Van eleje, vége nem tudom', 
+    'Ennek is van eleje',
+    'Vége alakul'
+]
+const lineHeight = 20;
+
+const poemText = svg.selectAll("text")
+    .data(poem)
+    .join("text")    
+    .attr("text-anchor", "middle")
+    .text(d => d)
+    .attr("x", width/2)
+    .attr("y", (d, i) => height/2 + i * lineHeight - ((poem.length / 3) * lineHeight))
+    .attr("text-anchor", "middle")
+
+let circle;
+for (let i = 0; i<circleIterations; i++) {
+
+    circle = svg.append("circle")
+        .attr("class", "expandingcircle")
+        .attr("cx", width/2)
+        .attr("cy", height/2)
+        .attr("r", 0)
+        .attr("opacity", 1)
+    
+        poemText.raise()
+
+    await circle
+      .transition()
+        .duration(firstDuration-Math.random()*10)
+        .attr("r", Math.random()*100+i**2)
+      .transition()
+        .duration(Math.random()*1000)
+        .attr("opacity", 0)
+        .attr("r", 0)
+      .end()
+
+      svg.select(".expandingcircle").remove()
+}
+
+
+</script>
