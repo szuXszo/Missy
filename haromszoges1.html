@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<head></head>
+<style>
+    .path1{
+      fill: aliceblue;
+      }
+</style>
+<body>
+<div id="container"></div>
+</body>
+<script src="./d3.v7.js"></script>
+<script>
+
+// import * as d3 from "./d3.v7.js";
+
+// Declare the chart dimensions and margins.
+const svgWidth = 1000;
+const svgHeight = 1000;
+
+let ELBASZAS_MERO = 0.001;
+
+function elbaszo(x) {
+    
+    if (Math.random() > 0.5) {  // plus
+        return x * (1 + Math.random() * ELBASZAS_MERO)
+    } else { // minus
+        return x * (1 - Math.random() * ELBASZAS_MERO)
+    } 
+    
+}
+
+function drawPaths(context, points) {
+    let start = points[0]
+    context.moveTo(start.x, start.y)
+    for (let i = 1; i < points.length; i++) {
+        context.lineTo(points[i].x, points[i].y)
+    }
+    context.closePath();
+    
+}
+
+function drawTriangle(points) {
+
+    const path = d3.path()
+    drawPaths(path, points)
+    svg.append("path")
+        .attr('d', path.toString())
+        .attr('stroke', 'black')
+        .attr('stroke-width', 0)
+        .attr("fill", "grey")
+        .attr("opacity", 0.1)
+}
+
+
+// Create the SVG container.
+let svg = d3.select("#container")
+  .append("svg")
+  .attr("viewBox", [0, 0, svgWidth, svgHeight]);
+//   .attr("width", svgWidth)
+//   .attr("height", svgHeight);
+
+let A = {x: 100, y: 100};
+let B = {x: 150, y: 120};
+let C = {x: 120, y: 200};
+
+const trianglePathPoints = {
+        0: A, 1: B, 2: C
+    }
+
+let pointToMove;
+
+for (let i = 0; i < 10; i++) {
+
+    
+    drawTriangle(Object.values(trianglePathPoints))
+
+    pointToMove = Math.floor(Math.random() * 3) 
+
+    trianglePathPoints[pointToMove] = {x: Math.random() * svgWidth, y: Math.random() * svgHeight}
+    // 
+}
+
+const poem = [
+    "Tíz háromszögből áll az életem,", 
+    "mind a tizet ugyanúgy szeretem.", 
+    "Mind a tíz háromszög kell nekem.", 
+    "Együtt szépek, egyben kell legyen."
+]
+
+svg.selectAll("text")
+.data(poem)
+.join("text")
+  .attr("x", svgWidth/2-100)
+  .attr("y", (d, i) => svgHeight/2-100 + i * 25)
+  .attr("font-family", "sans-serif")
+  .attr("font-size", "16px")
+  .attr("fill", "black")
+  .text(d => d);
+
+
+
+
+</script>
